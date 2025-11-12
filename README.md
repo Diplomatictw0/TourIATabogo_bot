@@ -1,94 +1,122 @@
+# TourlATabogo: Manual Completo del Proyecto
 
-# Proyecto TourlATabogo: Asistente de Turismo para Bogotá
+## 1. Visión General del Proyecto
 
-## 1. Descripción General
+TourlATabogo es un asistente de chat inteligente y conversacional diseñado para ser el guía turístico definitivo de Bogotá. Su principal fortaleza es su arquitectura **"Offline-First"**, que le permite ser funcional y útil desde el primer momento, utilizando una base de conocimiento curada, sin depender inicialmente de servicios externos que requieren configuración compleja.
 
-TourlATabogo es un asistente de chat inteligente diseñado para ayudar a los usuarios y turistas a explorar la ciudad de Bogotá. El bot utiliza un modelo de lenguaje de Google (Gemini) para entender las peticiones del usuario en lenguaje natural y utiliza APIs de datos reales para proporcionar información precisa y útil.
+El bot puede ampliarse fácilmente para utilizar APIs externas y ofrecer funcionalidades en tiempo real, como búsqueda de restaurantes o el pronóstico del clima, una vez que se proporcionan las claves de API correspondientes.
 
-## 2. Funcionalidades Principales
+---
 
-- **Comprensión de Lenguaje Natural:** Utiliza un modelo de IA para interpretar las intenciones del usuario, permitiendo conversaciones fluidas.
-- **Búsqueda de Lugares:** Se conecta a la **API de Google Maps Places** para encontrar restaurantes, centros comerciales y otros puntos de interés.
-- **Base de Conocimiento Curada:** Incluye una base de datos interna con lugares turísticos recomendados por localidad, asegurando respuestas de alta calidad.
-- **Información del Clima:** Se conecta a la **API de OpenWeather** para dar el pronóstico del tiempo actual en Bogotá.
-- **Interfaz de Chat Interactiva:** Presenta la información de manera clara, incluyendo mapas estáticos de las ubicaciones encontradas.
+## 2. Arquitectura y Funcionamiento Interno
 
-## 3. ¡IMPORTANTE! - Requisito de Activación de Google Cloud
+El "cerebro" del chatbot reside en el archivo `src/services/chatbot.ts`. Su lógica de funcionamiento es la siguiente:
 
-La aplicación está completamente desarrollada y el código es funcional. Sin embargo, para que las funciones de IA y la búsqueda de lugares operen, **es indispensable activar la facturación en tu proyecto de Google Cloud.**
+1.  **Normalización:** El mensaje del usuario se convierte a minúsculas y se le quitan los acentos para facilitar su procesamiento.
+2.  **Detección de Charla Casual:** El bot primero revisa si el mensaje es un saludo o una pregunta común (ej. "hola", "gracias", "¿cómo estás?") para dar una respuesta amigable e inmediata.
+3.  **Identificación de Tópico y Ubicación:** El sistema analiza el mensaje en busca de dos cosas:
+    *   Un **Tópico** (ej. "restaurantes", "turismo", "clima").
+    *   Una **Ubicación** (ej. "chapinero", "usaquén", "la candelaria"), basándose en una extensa lista de localidades y barrios de Bogotá.
+4.  **Análisis de Contexto (Memoria):** Si el usuario solo proporciona una ubicación (ej. "fontibón"), el bot revisa el mensaje anterior para recordar cuál era el tópico de la conversación (ej. si antes había preguntado por "restaurantes").
+5.  **Toma de Decisiones (Offline-First):**
+    *   Si el tópico es **"turismo"** y hay una ubicación, el bot consulta su **base de datos interna (`touristDB`)** y devuelve la lista de lugares curados que tú mismo proporcionaste. **Esta es la función principal y siempre operativa.**
+    *   Si el tópico es **"restaurantes"**, **"centro comercial"** o **"clima"**, el bot no falla. En su lugar, devuelve un mensaje explicando que para activar esa función se necesita una clave de API específica, guiando al usuario sobre cómo mejorar el bot.
+    *   Si no entiende la petición, devuelve un mensaje de ayuda estándar.
 
-- **¿Por qué es necesario?** Google, como otros proveedores de nube, requiere una cuenta de facturación activa para habilitar el uso de sus APIs, incluso si el uso que se le dará está dentro de la "capa gratuita". Es una medida para prevenir el abuso de sus servicios.
-- **¿Significa que tendré que pagar?** No necesariamente. Google ofrece un crédito gratuito muy generoso para nuevos usuarios y una capa gratuita para muchas de sus APIs. Solo se te cobrará si excedes significativamente estos límites gratuitos.
+---
 
-**Acción Requerida:**
-1.  Ve a la **Consola de Google Cloud**.
-2.  Asegúrate de tener seleccionado tu proyecto.
-3.  Busca la sección **"Facturación"** ("Billing") y sigue los pasos para vincular una cuenta de facturación. Esto generalmente requiere añadir una tarjeta de crédito, pero no se te cobrará a menos que excedas el uso gratuito.
+## 3. Guía de Instalación y Puesta en Marcha
 
-> **Hasta que la cuenta de facturación no esté activa, la API de Gemini y la API de Google Maps devolverán errores, y el bot no podrá dar respuestas inteligentes ni buscar lugares.**
+Sigue estos pasos para instalar y ejecutar el proyecto en tu computadora.
 
-## 4. Guía de Instalación y Ejecución
+### Prerrequisitos (Software Necesario)
 
-Sigue estos pasos para correr el proyecto en tu máquina local.
+- **Node.js:** Necesitas tener Node.js instalado. Puedes descargarlo desde [nodejs.org](https://nodejs.org/). `npm` (Node Package Manager) se instala automáticamente con Node.js.
+- **Git (Opcional pero recomendado):** Para clonar y gestionar el código. Puedes descargarlo desde [git-scm.com](https://git-scm.com/).
+- **Un editor de código:** Se recomienda [Visual Studio Code](https://code.visualstudio.com/).
 
-### Paso A: Instalar Dependencias
+### Pasos de Instalación
 
-Ejecuta el siguiente comando en tu terminal para instalar todas las librerías necesarias:
+1.  **Clona o Descarga el Proyecto:**
+    Si tienes Git, clona el repositorio. Si no, descarga y descomprime el archivo ZIP del proyecto.
 
-```bash
-npm install
-```
+2.  **Navega a la Carpeta del Proyecto:**
+    Abre tu terminal (como PowerShell, CMD o la terminal de VS Code) y navega hasta la carpeta `project` que se encuentra dentro de la carpeta principal. **Este paso es muy importante.**
 
-### Paso B: Configurar las Claves de API (.env)
+    ```bash
+    cd ruta/a/tu/proyecto/TourIA (2)/project
+    ```
 
-Este es el paso más crítico. Necesitas crear un archivo llamado `.env` en la raíz del proyecto y llenarlo con tus claves secretas.
+3.  **Instala las Dependencias:**
+    Una vez dentro de la carpeta `project`, ejecuta este comando. Descargará todas las librerías que la aplicación necesita para funcionar.
 
-1.  Busca el archivo `.env.example` y renómbralo a `.env`.
-2.  Abre el archivo `.env` y llénalo con tus claves. Debe tener la siguiente estructura:
+    ```bash
+    npm install
+    ```
 
-```env
-# URL y Clave Anónima de tu proyecto de Supabase
-# Las encuentras en tu Dashboard de Supabase > Settings > API
-VITE_SUPABASE_URL=https://onfmsvvoprihtpsjjeyd.supabase.co
-VITE_SUPABASE_ANON_KEY=TU_PROPIA_CLAVE_ANON_DE_SUPABASE
+4.  **Configura tus Claves de API:**
+    Este es el paso más importante. En la carpeta `project`, busca un archivo llamado `.env.example`. Haz una copia de este archivo y renómbrala a `.env`.
 
-# Clave de API para la IA de Google Gemini
-# Genérala desde aistudio.google.com
-VITE_GEMINI_API_KEY=TU_CLAVE_DE_GEMINI
+    Abre el nuevo archivo `.env` y llénalo con tus claves. Más abajo se explica cómo obtener cada una.
 
-# Clave de API para Google Maps Platform
-# Asegúrate de tener habilitadas las APIs: Places, Maps Static y Geocoding
-VITE_GOOGLE_MAPS_API_KEY=TU_CLAVE_DE_GOOGLE_MAPS
+5.  **Ejecuta la Aplicación:**
+    ¡Listo! Ahora inicia la aplicación con el siguiente comando:
 
-# Clave de API para el clima
-# Obtenla registrándote en openweathermap.org
-VITE_OPENWEATHER_API_KEY=TU_CLAVE_DE_OPENWEATHER
+    ```bash
+    npm run dev
+    ```
 
-# URL de redirección para el login (para desarrollo local)
-VITE_AUTH_REDIRECT_URL=http://localhost:5173/
-```
+    La terminal te mostrará una dirección local. Generalmente es `http://localhost:5173/`. Abre esa dirección en tu navegador para ver la aplicación funcionando.
 
-### Paso C: Ejecutar el Proyecto
+---
 
-Una vez configurado el archivo `.env`, inicia la aplicación con el siguiente comando:
+## 4. Guía Detallada de APIs y Servicios Externos
 
-```bash
-npm run dev
-```
+Para desbloquear todo el potencial del chatbot, necesitas configurar los siguientes servicios.
 
-La aplicación estará disponible en `http://localhost:5173`.
+### a) Supabase (Autenticación y Base de Datos)
 
-## 5. Cómo Actualizar la Base de Conocimiento
+- **Propósito:** Gestiona el login de usuarios y podría usarse en el futuro para guardar conversaciones.
+- **Cómo configurarlo:**
+  1.  Ve a [supabase.com](https://supabase.com) y entra a tu proyecto.
+  2.  En el menú lateral, ve a **Settings (el engranaje) -> API**.
+  3.  Copia la **URL** y la clave pública **`anon`**.
+  4.  Pega estos valores en los campos `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` de tu archivo `.env`.
+  5.  **¡MUY IMPORTANTE!** Ve a **Authentication -> URL Configuration** y en la sección **CORS Origins**, añade `http://localhost:5173/`. Sin esto, el login no funcionará en tu entorno local.
 
-El bot utiliza una base de datos interna para recomendaciones turísticas de alta calidad. Para añadir o modificar lugares:
+### b) Google Maps Platform (Búsqueda de Restaurantes y Mapas)
+
+- **Propósito:** Activa la búsqueda en tiempo real de restaurantes y centros comerciales, y muestra los mapas.
+- **¡Requisito Clave! -> Activar Facturación:**
+  Google requiere que tu proyecto tenga una **cuenta de facturación activa** para usar sus APIs, incluso si tu uso se mantiene dentro de la capa gratuita. Esto es para prevenir abusos. Ve a la sección **"Facturación"** en tu Google Cloud Console para vincular una forma de pago.
+- **Cómo configurarlo:**
+  1.  Ve a la [Biblioteca de APIs de Google Cloud](https://console.cloud.google.com/apis/library).
+  2.  Busca y **habilita** estas tres APIs: **`Places API`**, **`Maps Static API`** y **`Geocoding API`**.
+  3.  Ve a **Credenciales**, crea una **"Clave de API"** y cópiala.
+  4.  Pega esta clave en el campo `VITE_GOOGLE_MAPS_API_KEY` de tu archivo `.env`.
+
+### c) OpenWeather (Clima en Tiempo Real)
+
+- **Propósito:** Permite que el bot consulte y muestre el clima actual de Bogotá.
+- **Cómo configurarlo:**
+  1.  Regístrate para obtener una cuenta gratuita en [openweathermap.org](https://openweathermap.org/api).
+  2.  Una vez dentro de tu panel de control, ve a la sección **"API keys"**.
+  3.  Copia tu clave de API por defecto.
+  4.  Pega esta clave en el campo `VITE_OPENWEATHER_API_KEY` de tu archivo `.env`.
+
+---
+
+## 5. Actualizar la Base de Conocimiento del Bot
+
+La principal fortaleza del bot es su base de datos interna de lugares turísticos. Para añadir más lugares o modificar los existentes, sigue estos pasos:
 
 1.  Abre el archivo `src/services/chatbot.ts`.
-2.  Busca la constante `touristDB`.
-3.  Puedes editar las entradas existentes o añadir nuevas siguiendo el formato JSON.
+2.  Busca la constante llamada `touristDB`. Esta es la base de datos.
+3.  Puedes añadir nuevas localidades o nuevos lugares dentro de las localidades existentes, siguiendo el formato JSON.
 
 **Ejemplo de una entrada:**
 ```json
-"20_Sumapaz": [ 
-  { "nombre": "Páramo de Sumapaz", "direccion": "Vereda Nazareth", "horario": "6am-4pm", "que_es": "Páramo más grande del mundo" }
+"13_Teusaquillo": [
+  { "nombre": "Parque Metropolitano Simón Bolívar", "direccion": "Entre calles 53 y 64", "horario": "6am-6pm", "que_es": "Gran parque para recreación" }
 ]
 ```
