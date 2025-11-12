@@ -41,21 +41,21 @@ Sigue estos pasos para instalar y ejecutar el proyecto en tu computadora.
     Si tienes Git, clona el repositorio. Si no, descarga y descomprime el archivo ZIP del proyecto.
 
 2.  **Navega a la Carpeta del Proyecto:**
-    Abre tu terminal (como PowerShell, CMD o la terminal de VS Code) y navega hasta la carpeta `project` que se encuentra dentro de la carpeta principal. **Este paso es muy importante.**
+    Abre tu terminal (como PowerShell, CMD o la terminal de VS Code) y navega hasta la carpeta del proyecto. **Este paso es muy importante.**
 
     ```bash
-    cd ruta/a/tu/proyecto/TourIA (2)/project
+    cd ruta/a/tu/proyecto/TourIATabogo_bot
     ```
 
 3.  **Instala las Dependencias:**
-    Una vez dentro de la carpeta `project`, ejecuta este comando. Descargará todas las librerías que la aplicación necesita para funcionar.
+    Una vez dentro de la carpeta del proyecto, ejecuta este comando. Descargará todas las librerías que la aplicación necesita para funcionar.
 
     ```bash
     npm install
     ```
 
 4.  **Configura tus Claves de API:**
-    Este es el paso más importante. En la carpeta `project`, busca un archivo llamado `.env.example`. Haz una copia de este archivo y renómbrala a `.env`.
+    Este es el paso más importante. En la carpeta del proyecto, busca un archivo llamado `.env.example`. Haz una copia de este archivo y renómbrala a `.env`.
 
     Abre el nuevo archivo `.env` y llénalo con tus claves. Más abajo se explica cómo obtener cada una.
 
