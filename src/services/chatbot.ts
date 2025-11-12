@@ -1,200 +1,140 @@
-import { Restaurant } from '../types';
 
-const restaurants: Restaurant[] = [
-  {
-    name: 'Andrés Carne de Res',
-    zone: 'Chía / Zona T',
-    description: 'Un clásico con comida típica colombiana, música en vivo y un ambiente único lleno de decoración colorida.',
-    type: 'Colombiana',
-    image: 'https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=600'
-  },
-  {
-    name: 'Harry Sasson',
-    zone: 'Chapinero',
-    description: 'Uno de los restaurantes más reconocidos del país, con una carta internacional de alta cocina.',
-    type: 'Internacional',
-    image: 'https://images.pexels.com/photos/1579739/pexels-photo-1579739.jpeg?auto=compress&cs=tinysrgb&w=600'
-  },
-  {
-    name: 'Leo Cocina y Cava',
-    zone: 'Chapinero',
-    description: 'Restaurante galardonado con estrella Michelin, ofrece una experiencia gastronómica excepcional con productos locales.',
-    type: 'Colombiana Contemporánea',
-    image: 'https://images.pexels.com/photos/1581384/pexels-photo-1581384.jpeg?auto=compress&cs=tinysrgb&w=600'
-  },
-  {
-    name: 'Criterion',
-    zone: 'Usaquén',
-    description: 'Cocina francesa clásica en un ambiente elegante. Perfecto para ocasiones especiales.',
-    type: 'Francesa',
-    image: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600'
-  },
-  {
-    name: 'Wok',
-    zone: 'Zona Rosa / Usaquén',
-    description: 'Fusión asiática con platillos de diferentes países orientales. Ambiente moderno y casual.',
-    type: 'Asiática',
-    image: 'https://images.pexels.com/photos/1410236/pexels-photo-1410236.jpeg?auto=compress&cs=tinysrgb&w=600'
-  },
-  {
-    name: 'La Puerta de la Catedral',
-    zone: 'La Candelaria',
-    description: 'Restaurante tradicional en el corazón histórico de Bogotá, ideal para probar ajiaco y otros platos típicos.',
-    type: 'Colombiana',
-    image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600'
-  }
-];
+import { Message } from '../types';
 
-const safetyZones: Record<string, string> = {
-  'zona t': 'La Zona T es generalmente segura, especialmente durante el día y en áreas concurridas. Como en cualquier zona turística, mantén precaución con tus pertenencias.',
-  'chapinero': 'Chapinero es un barrio en desarrollo con zonas muy seguras, especialmente en Chapinero Alto. Se recomienda precaución en la noche.',
-  'usaquén': 'Usaquén es uno de los barrios más seguros de Bogotá, muy popular entre turistas y locales. Ideal para pasear incluso en la noche.',
-  'la candelaria': 'La Candelaria es segura durante el día, pero se recomienda precaución en la noche. Mantente en calles principales y áreas turísticas.',
-  'chía': 'Chía es una zona residencial muy segura, ubicada al norte de Bogotá. Excelente para salir a comer.',
-  'zona rosa': 'La Zona Rosa es segura y muy concurrida, especialmente los fines de semana. Es una zona turística con buena presencia policial.'
+// --- Interfaces and Types ---
+interface BotResponse {
+  content: string;
+  metadata?: any;
+}
+
+interface Place {
+  name: string;
+  address: string;
+}
+
+// --- USER-PROVIDED DATABASE for Tourist Spots ---
+// This is the primary source of truth for tourist information.
+const touristDB = {
+  "1_Usaquen": [ { "nombre": "Mercado de las Pulgas de Usaquén", "direccion": "Carrera 6 No. 118-20", "horario": "Domingos por la mañana", "que_es": "Mercado de artesanías y antigüedades" } ],
+  "2_Chapinero": [ { "nombre": "Parque de la 93", "direccion": "Calle 93", "horario": "Público", "que_es": "Parque con restaurantes y bares" } ],
+  "3_Santa_Fe": [ { "nombre": "Cerro de Monserrate", "direccion": "Carrera 2 Este No. 21-48", "horario": "6am-10pm aprox.", "que_es": "Mirador y santuario" } ],
+  "4_San_Cristobal": [ { "nombre": "Cerro de Guadalupe", "direccion": "Av. Circunvalar No. 70-50", "horario": "Consultar", "que_es": "Mirador y santuario" } ],
+  "5_Usme": [ { "nombre": "Parque Ecológico Sumapaz", "direccion": "Vereda Nazareth", "horario": "6am-4pm", "que_es": "Parque natural" } ],
+  "6_Tunjuelito": [ { "nombre": "Parque El Tunal", "direccion": "Calle 48B Sur #22-81", "horario": "Abierto", "que_es": "Gran parque con zonas verdes" } ],
+  "7_Bosa": [ { "nombre": "Plaza Fundacional de Bosa", "direccion": "Carrera 80 #63-50 Sur", "horario": "Abierto", "que_es": "Centro histórico" } ],
+  "8_Kennedy": [ { "nombre": "Parque Timiza", "direccion": "Carrera 73 #42-20 Sur", "horario": "Abierto", "que_es": "Gran parque con lago" } ],
+  "9_Fontibon": [ { "nombre": "Plaza Fundacional de Fontibón", "direccion": "Carrera 99 #18-20", "horario": "Abierto", "que_es": "Centro histórico" } ],
+  "10_Engativa": [ { "nombre": "Parque Central de Engativá", "direccion": "Carrera 77 #64-50", "horario": "Abierto", "que_es": "Parque recreativo principal" } ],
+  "11_Suba": [ { "nombre": "Centro Comercial Santafé", "direccion": "Calle 185 No. 45-03", "horario": "10am-8pm", "que_es": "Gran centro comercial" } ],
+  "12_Barrios_Unidos": [ { "nombre": "Parque El Virrey", "direccion": "Carrera 15 No. 92-42", "horario": "Público", "que_es": "Parque para caminar" } ],
+  "13_Teusaquillo": [ { "nombre": "Parque Metropolitano Simón Bolívar", "direccion": "Entre calles 53 y 64", "horario": "6am-6pm", "que_es": "Gran parque para recreación" } ],
+  "14_Los_Martires": [ { "nombre": "Cementerio Central", "direccion": "Calle 22 No. 3-90", "horario": "Consultar", "que_es": "Sitio histórico" } ],
+  "15_Antonio_Narino": [ { "nombre": "Parque El Renacimiento", "direccion": "Calle 23 Sur #39-10", "horario": "Abierto", "que_es": "Parque recreativo" } ],
+  "16_Puente_Aranda": [ { "nombre": "Maloka", "direccion": "Carrera 68D #24A-51", "horario": "Mar-Dom", "que_es": "Museo interactivo de ciencia" } ],
+  "17_La_Candelaria": [ { "nombre": "Monserrate", "direccion": "Calle 21 No. 1-45 Este", "horario": "6am-11pm", "que_es": "Cerro y santuario" }, { "nombre": "Museo del Oro", "direccion": "Carrera 6 #15-88", "horario": "Mar-Dom", "que_es": "Museo de piezas precolombinas" } ],
+  "18_Rafael_Uribe_Uribe": [ { "nombre": "Parque Entre Nubes", "direccion": "Carrera 1 Este #48 Sur", "horario": "6am-5pm", "que_es": "Parque ecológico" } ],
+  "19_Ciudad_Bolivar": [ { "nombre": "Parque Illimaní", "direccion": "Diagonal 62 Sur #20-20", "horario": "6am-6pm", "que_es": "Parque recreativo" } ],
+  "20_Sumapaz": [ { "nombre": "Páramo de Sumapaz", "direccion": "Vereda Nazareth", "horario": "6am-4pm", "que_es": "Páramo más grande del mundo" } ]
 };
 
-export async function generateBotResponse(userMessage: string): Promise<{
-  content: string;
-  metadata?: {
-    image?: string;
-    map?: string;
-    location?: {
-      name: string;
-      address: string;
-    };
-  };
-}> {
-  const lowerMessage = userMessage.toLowerCase();
+const locationKeyMap: Record<string, keyof typeof touristDB> = {
+    'usaquen': '1_Usaquen', 'chapinero': '2_Chapinero', 'santa fe': '3_Santa_Fe', 'san cristobal': '4_San_Cristobal', 
+    'usme': '5_Usme', 'la candelaria': '17_La_Candelaria', 'tunjuelito': '6_Tunjuelito', 'bosa': '7_Bosa', 'kennedy': '8_Kennedy', 
+    'fontibon': '9_Fontibon', 'engativa': '10_Engativa', 'suba': '11_Suba', 'barrios unidos': '12_Barrios_Unidos',
+    'teusaquillo': '13_Teusaquillo', 'los martires': '14_Los_Martires', 'antonio narino': '15_Antonio_Narino', 
+    'puente aranda': '16_Puente_Aranda', 'rafael uribe uribe': '18_Rafael_Uribe_Uribe', 'ciudad bolivar': '19_Ciudad_Bolivar', 'sumapaz': '20_Sumapaz'
+};
 
-  if (
-    lowerMessage.includes('comer') ||
-    lowerMessage.includes('cenar') ||
-    lowerMessage.includes('restaurante') ||
-    lowerMessage.includes('comida')
-  ) {
-    const randomRestaurants = restaurants
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 2);
+const allKnownLocations = Object.keys(locationKeyMap);
 
-    let response = 'Genial, te ayudaré a encontrar los mejores sitios para cenar en Bogotá:\n\n';
-    randomRestaurants.forEach((restaurant, index) => {
-      response += `${index + 1}. ${restaurant.name} (${restaurant.zone}): ${restaurant.description}\n\n`;
-    });
+// --- Bot Brain (Offline-First Version) ---
 
-    return {
-      content: response,
-      metadata: {
-        image: randomRestaurants[0].image,
-        map: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=400&height=300&center=lonlat:-74.0721,4.6097&zoom=12&marker=lonlat:-74.0721,4.6097;color:%2300aeef;size:medium&apiKey=demo`,
-        location: {
-          name: randomRestaurants[0].name,
-          address: randomRestaurants[0].zone
+function getTouristSpotsFromDB(location: string): Place[] {
+    const key = locationKeyMap[normalizeString(location)];
+    if (!key || !touristDB[key]) return [];
+    return touristDB[key].map(spot => ({
+        name: spot.nombre,
+        address: `${spot.direccion}. ${spot.que_es} (Horario: ${spot.horario})`
+    }));
+}
+
+function findTopicAndLocation(message: string): { topic: string | null; location: string | null } {
+    const normalizedMessage = normalizeString(message);
+    let foundTopic: string | null = null;
+    if (normalizedMessage.includes('restaurante')) foundTopic = 'restaurantes';
+    else if (normalizedMessage.includes('turismo') || normalizedMessage.includes('turistico')) foundTopic = 'turismo';
+    else if (normalizedMessage.includes('comercial')) foundTopic = 'centro comercial';
+    else if (normalizedMessage.includes('clima')) foundTopic = 'clima';
+
+    for (const loc of allKnownLocations) {
+        if (normalizedMessage.includes(normalizeString(loc))) {
+            return { topic: foundTopic, location: loc };
         }
-      }
-    };
-  }
-
-  if (lowerMessage.includes('clima') || lowerMessage.includes('tiempo')) {
-    const weatherData = await getWeather();
-    return {
-      content: `El clima actual en Bogotá:\n\n🌡️ Temperatura: ${weatherData.temperature}°C\n${weatherData.description}\n\nRecuerda que Bogotá tiene un clima variable, siempre es bueno llevar una chaqueta.`,
-      metadata: {}
-    };
-  }
-
-  if (
-    lowerMessage.includes('segur') ||
-    lowerMessage.includes('peligro') ||
-    lowerMessage.includes('riesgo')
-  ) {
-    const foundZone = Object.keys(safetyZones).find(zone =>
-      lowerMessage.includes(zone)
-    );
-
-    if (foundZone) {
-      return {
-        content: `Información de seguridad sobre ${foundZone}:\n\n${safetyZones[foundZone]}`,
-        metadata: {}
-      };
     }
-
-    return {
-      content: 'Para darte información de seguridad específica, ¿me puedes decir qué zona de Bogotá te interesa? Por ejemplo: Zona T, Chapinero, Usaquén, La Candelaria, etc.',
-      metadata: {}
-    };
-  }
-
-  if (
-    lowerMessage.includes('hola') ||
-    lowerMessage.includes('ayuda') ||
-    lowerMessage.includes('qué puedes hacer')
-  ) {
-    return {
-      content: '¡Hola! Puedo ayudarte con:\n\n• Recomendaciones de restaurantes y lugares para comer\n• Información sobre el clima en Bogotá\n• Datos de seguridad sobre diferentes zonas\n• Sugerencias turísticas\n\n¿En qué te puedo ayudar hoy?',
-      metadata: {}
-    };
-  }
-
-  if (
-    lowerMessage.includes('turismo') ||
-    lowerMessage.includes('visitar') ||
-    lowerMessage.includes('lugares')
-  ) {
-    return {
-      content: 'En Bogotá hay lugares increíbles para visitar:\n\n• Cerro de Monserrate - Vista panorámica de la ciudad\n• Museo del Oro - Increíble colección precolombina\n• La Candelaria - Centro histórico con arquitectura colonial\n• Usaquén - Barrio bohemio con mercado de pulgas los domingos\n• Zona T - Centro comercial y de entretenimiento\n\n¿Te gustaría información más detallada sobre alguno?',
-      metadata: {}
-    };
-  }
-
-  return {
-    content: 'Interesante pregunta. Puedo ayudarte con información sobre restaurantes, clima, seguridad en diferentes zonas y lugares turísticos de Bogotá. ¿Qué te gustaría saber?',
-    metadata: {}
-  };
+    return { topic: foundTopic, location: null };
 }
 
-async function getWeather(): Promise<{
-  temperature: number;
-  description: string;
-}> {
-  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-
-  if (!apiKey || apiKey === 'your_api_key_here') {
-    return {
-      temperature: 14,
-      description: '⛅ Parcialmente nublado (clima típico de Bogotá)'
-    };
-  }
-
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=Bogota,CO&units=metric&appid=${apiKey}&lang=es`
-    );
-    const data = await response.json();
-
-    return {
-      temperature: Math.round(data.main.temp),
-      description: `${getWeatherEmoji(data.weather[0].main)} ${data.weather[0].description}`
-    };
-  } catch (error) {
-    console.error('Error fetching weather:', error);
-    return {
-      temperature: 14,
-      description: '⛅ Parcialmente nublado'
-    };
-  }
+function normalizeString(str: string): string {
+    return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function getWeatherEmoji(condition: string): string {
-  const emojiMap: Record<string, string> = {
-    'Clear': '☀️',
-    'Clouds': '☁️',
-    'Rain': '🌧️',
-    'Drizzle': '🌦️',
-    'Thunderstorm': '⛈️',
-    'Snow': '❄️',
-    'Mist': '🌫️',
-    'Fog': '🌫️'
+export async function generateBotResponse(lastMessage: string, history: Message[]): Promise<BotResponse> {
+  const normalizedMessage = normalizeString(lastMessage);
+
+  // 1. Handle Small Talk
+  const smallTalk: Record<string, string> = {
+      'hola': '¡Hola! Soy TourlATabogo. Puedo darte recomendaciones de lugares turísticos. ¿Sobre qué zona de Bogotá te gustaría saber?',
+      'como estas': '¡Muy bien! Listo para mostrarte lo mejor de Bogotá, basado en la información que tenemos.',
+      'gracias': '¡De nada! Si necesitas más recomendaciones, no dudes en preguntar.',
+      'adios': '¡Que tengas un gran día explorando Bogotá!'
   };
-  return emojiMap[condition] || '🌤️';
+  for (const key in smallTalk) {
+      if (normalizedMessage.includes(key)) return { content: smallTalk[key] };
+  }
+
+  // 2. Find Topic and Location
+  let { topic, location } = findTopicAndLocation(lastMessage);
+
+  // 3. Handle context from previous messages
+  if (!topic && location) {
+    const lastBotMessage = history.slice().reverse().find(m => m.sender_type === 'bot');
+    if (lastBotMessage && lastBotMessage.content.includes('¿En qué localidad o barrio')) {
+        if (lastBotMessage.content.includes('turísticos')) topic = 'turismo';
+    }
+  }
+
+  // 4. Execute actions based on findings
+
+  // --- API-DEPENDENT FEATURES --- (Now they explain the requirement)
+  if (topic === 'restaurantes' || topic === 'centro comercial') {
+      return { content: 'Esta función requiere una clave de API de Google Maps. Cuando la configures y actives la facturación en Google Cloud, podré buscar lugares en tiempo real.' };
+  }
+  if (topic === 'clima') {
+      return { content: 'Para darte el pronóstico del clima, necesito una clave de API de OpenWeather. Cuando la configures, esta función se activará.' };
+  }
+
+  // --- DATABASE-DRIVEN FEATURE (Works Offline) ---
+  if (topic === 'turismo') {
+      if (!location) {
+          return { content: '¡Claro! ¿En qué localidad o barrio de Bogotá te gustaría conocer lugares turísticos?' };
+      }
+      const places = getTouristSpotsFromDB(location);
+      return formatPlacesResponse(places, location);
+  }
+  
+  if(location) {
+      const places = getTouristSpotsFromDB(location);
+      return formatPlacesResponse(places, location);
+  }
+
+  // Fallback for when nothing is understood
+  return { content: 'No te entendí. Por ahora, puedo darte información de lugares turísticos en las localidades de Bogotá. Intenta preguntando, por ejemplo, "turismo en chapinero".' };
+}
+
+// --- Helper to format the response for places ---
+function formatPlacesResponse(places: Place[], location: string): BotResponse {
+  if (places.length === 0) return { content: `Lo siento, no tengo información de lugares turísticos para ${location} en mi base de datos.` };
+  let responseContent = `¡Claro! Según mi base de datos, aquí tienes algunos lugares recomendados en ${location}:\n\n`;
+  places.forEach((place, i) => { responseContent += `${i + 1}. **${place.name}**: ${place.address}\n`; });
+  return { content: responseContent };
 }

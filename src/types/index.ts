@@ -12,6 +12,13 @@ export interface Message {
   content: string;
   sender_type: 'user' | 'bot';
   metadata?: {
+    places?: Array<{
+      name: string;
+      address: string;
+      rating?: number;
+      price_level?: number;
+      image?: string;
+    }>;
     image?: string;
     map?: string;
     location?: {
